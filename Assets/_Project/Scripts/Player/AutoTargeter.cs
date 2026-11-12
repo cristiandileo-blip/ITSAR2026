@@ -1,0 +1,56 @@
+using UnityEngine;
+
+public class AutoTargeter : MonoBehaviour
+{
+    [SerializeField] LayerMask targetMask;
+    [SerializeField] float eyeHeight = 1.5f;
+    [SerializeField] LayerMask obstacleMask;
+    [SerializeField] float range;
+
+    void FixedUpdate()
+    {
+    
+    }
+
+    public Health FindNearest()
+    {
+        Vector3 eye = transform.position + Vector3.up * eyeHeight;
+    
+        // sfera: tutti i bersagli entro range
+        Collider[] hits = Physics.OverlapSphere(
+            transform.position, range, targetMask);
+
+            Health currentElegibleEnemy = null;
+
+    
+        foreach (Collider hit in hits)
+        {
+            Health health = hit.GetComponentInParent<Health>();
+
+            if(!health) continue;
+
+            Vector3 point = health.transform.position
+                        + Vector3.up * eyeHeight;
+            // linea: c'è un ostacolo tra me e lui?
+            if (Physics.Linecast(eye, point, obstacleMask))
+                continue;
+            if(currentElegibleEnemy == null)
+            {
+                currentElegibleEnemy = health;
+            }
+            else
+            {
+                float currentEnemyDistance = Vector3.Distance(currentElegibleEnemy.transform.position, transform.position);
+                float newEnemyDistance = Vector3.Distance(health.transform.position, transform.position);
+                
+                if (newEnemyDistance < currentEnemyDistance)
+                {
+                    currentElegibleEnemy = health;
+                }
+            }
+        }
+        Debug.Log(currentElegibleEnemy ? currentElegibleEnemy.gameObject.name: "nothing" + "found a target");
+        return currentElegibleEnemy;
+    }
+
+}
